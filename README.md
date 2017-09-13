@@ -1,3 +1,3 @@
-# vissoft17
+# SOAP@ACM SAC 2018 paper
 
-[The Paper Draft](https://github.com/mircealungu/vissoft17/blob/master/vissoft.pdf)
+
