@@ -84,6 +84,8 @@
 
 \todo{Intro to be rewritten; refer to VISSOFT paper as previous work, explain focus is on integration with version control/CI for evolution support, and use of unit tests as early performance indicator}
 
+\todo{explain: in~\cite{vogel2017low} we introduced the \tool an a high level with a focus on presenting its performance visualization aspects; in this work we only summarize these features by means of introducing some of the provided functionalities of the \tool. We focus on discussing how the tool is implemented and operating, provide a deeper look at its capabilities for integration with version control and continuous integration environments, introduce a mechanism for performance prediction, and provide an evaluation of the proposed approach based on a case study. }
+
 %Every system is a distributed system nowadays \cite{cavage2013there}. Indeed a very large number of applications and web applications are nowadays implemented as two-tier architectures with a front-end implemented with web technologies and a service back-end.
 %\ml{I'm not completely happy with this paragraph}
 {\em There is no getting around it: you are building a distributed system} argues a recent article \cite{cavage2013there}. Indeed, even the simplest second-year student project is a web application implemented as two-tier architecture with a Javascript/HTML5 front-end a service backend, usually a REST API.
@@ -122,8 +124,9 @@ As a case study, on which we will illustrate our solution, we are going to use a
 \todo{Add signposting paragraph}
 
 \section{Case Study}
+\label{sec:case}
 
-\todo{Either leave as is or add more info on usage by college if possible}
+%\todo{Either leave as is or add more info on usage by college if possible}
 
   \zee\footnote{\url{https://www.zeeguu.unibe.ch/}} is a platform and an ecosystem of applications for accelerating vocabulary acquisition in a foreign language \cite{Lungu16}. 
 %
@@ -139,56 +142,87 @@ As a case study, on which we will illustrate our solution, we are going to use a
 
   \end{enumerate}
 
-  The core API provides correspondingly three types of functionality: contextual translations, article recommendations, and personalized exercise suggestions. The core API of system is a research project, which sustains at the moment of writing this article the reading and practice of about \activeUserCount active beta-tester accounts. 
+  The core API provides correspondingly three types of functionality: contextual translations, article recommendations, and personalized exercise suggestions. The development of the core API itself is a research project, which sustains at the moment of writing this article the reading and practice of about \activeUserCount active beta-tester accounts. 
 
-  In the remainder of this paper, we will use the \zee API as a case study. All the figures in this paper are captured from the actual deployment of \tool in the context of the \zee API\footnote{Within the \tool the figures are interactive offering basic data exploration capabilities: filter, zoom, and details on demand\cite{Shne99a}}.
+  In the remainder of this paper, we will use the \zee API as a case study. All the figures in this paper are captured from the actual deployment of \tool in the context of the \zee API. The figures are interactive offering basic data exploration capabilities: filter, zoom, and details on demand\cite{Shne99a}. The \tool deployment for the case study can be accessed publicly\footnote{\url{https://zeeguu.unibe.ch/api/dashboard}; username: {\em guest}, password: {\em vissoft}}. 
 
-
+ \todo{create new account, update URL if necessary, update activeUserCount, add a couple of sentences of the current state of the case study}
 % \ml{we should consider adding also one section in which the architecture/implementation and main features of the dashboard are presented before going on with discussing them in more depth in the following sections --- this should include a rundown on which views are provided from where (overview or per endpoint)}
 
 
 
 \section{The \tool}
-\todo{Refer to VISSOFT paper and rephrase where possible; add more info on implementation, e.g. annotation mechanism, database design, session handling etc.}
+\label{sec:tool}
 
-  In this paper we are introducing \tool, a drop-in Python library that allows developers to monitor their Flask-based Python web applications with minimal effort.
+%\todo{Refer to VISSOFT paper~\cite{vogel2017low} and rephrase where possible; add more info on implementation, e.g. annotation mechanism, database design, session handling etc.}
 
-  The \tool as well as the web application that is being monitored in the case study is written in Python using Flask. This makes binding to the web services of the application relatively easy, as well as adding additional routes to the service for interacting with the \tool.
-
-  To start using our Python library for service visualization, and assuming Flask is already installed, one needs to install the Python package\footnote{Section \ref{sec:install} shows how to install the package} 
-  and simply add two lines of code to their Flask web service:
+  As discussed in the introductory section, in previous work~\cite{vogel2017low} we introduced \tool, a drop-in Python library that allows developers to monitor their Flask-based Python web applications with minimal effort.
+%
+  The \tool is implemented for Python 3.6 and is available on the Python Package Index repository\footnote{\url{https://pypi.python.org/pypi/flask-monitoring-dashboard/1.8}} from where it can be installed on any system that has Python installed by running \install from the command line. 
+%  
+  The source code of the \tool is published under a permissive MIT license and is available on GitHub\footnote{\url{https://github.com/flask-dashboard}}.
+  
+  The fact that the \tool is being developed in Python using Flask makes binding to the services of a to-be monitored application developed with the same technologies not only easy and intuitive, but also comes with the ability of adding additional routes to the services for interacting with the \tool.
+  To start using the \tool, one simply needs to add two lines of code to their Flask web service:
 
   % caption=Configuring the \tool is straightforward,
   \begin{lstlisting}[style=custompython]
   import dashboard
-  ...
+
   # flask_app is the Flask app object
   dashboard.bind(flask_app)
   ...
   \end{lstlisting}
 
+  After (re)deployment of the application, the \tool becomes available at the \code{/dashboard} route of the Flask application. Further configuration is possible by adding additional statements before the binding definition, for example:
 
-  % A custom route can also be defined by simply adding one extra line of code:
-  % \begin{lstlisting}[caption=Configuring the \tool with a custom route for it to be accessed on is straightforward, style=custompython]
-  % dashboard.config.link = 'custom-link'
-  % \end{lstlisting}
-
-  %\mltp{a small description of how the dashboard automatically intercepts the calls to the various API calls}
-  After binding to the service, the \tool becomes available at the \code{/dashboard} route of the Flask application. A custom route can also be defined by the programmer in a configuration file.
+  \begin{lstlisting}[style=custompython]
+  ...
+  dashboard.config.link = 'mymonitor'
+  dashboard.bind(flask_app)
+  \end{lstlisting}
+  
+  allows for a custom route (\code{/mymonitor}) to the dashboard to be defined by the programmer. An external configuration file can be used instead/in addition to this:
+  
+  \begin{lstlisting}[style=custompython]
+  ...
+  dashboard.config.from_file('config.cfg')
+  ...
+  \end{lstlisting}
 
   During binding, the \tool will search for all endpoints defined in the target application. These will be presented to the user in the tool web interface, where the user can select the ones that should be monitored, see \Fref{fig:sep}. 
 
     % \mltp{a small screenshot of how the dashboard allows one to select the interesting }
-    \begin{figure}[h!]
+    \begin{figure}
       \centering
       \includegraphics[width=\linewidth]{selecting_endpoints.png}
-      \caption{All of the endpoints of the Zeeguu app are shown such that a selection can be made for monitoring them}
+      \caption{Available endpoints for monitoring in the \zee application}
       \label{fig:sep}
     \end{figure}
 
-  In order to monitor an endpoint, the \tool creates a function wrapper for the API function that corresponds to the endpoint. This way, the wrapper will be executed whenever that API call is made. The wrapper contains the code that takes care of monitoring an endpoint. Data collected by the wrappers are persisted in a local database.
+  In order to monitor an endpoint, the \tool creates a function wrapper for the API function that corresponds to the endpoint. This way, the wrapper will be executed whenever that API call is made. The wrapper contains the code that takes care of monitoring an endpoint. Data collected by the wrappers are persisted in a local database. The SQLAlchemy Object Relational Mapper\footnote{\url{https://www.sqlalchemy.org/}} on top of SQLite\footnote{\url{https://www.sqlite.org/}} is used for this purpose.
   
-  \todo{Move here the discussion about the integration with version control and CI}
+  \todo{Add here session-specific info}
+  
+  Version control in the \tool is supported in two ways. \textit{Manual} version control requires the developer to tag each new version of the application with an appropriate version identifier~\cite{papazoglou2011managing} using the \code{APP\_VERSION} configuration parameter, for example by adding to the configuration file:
+  
+  \begin{lstlisting}[style=custompython]
+  [dashboard]
+  APP_VERSION=2.1.13
+  \end{lstlisting}
+  
+  \textit{Automatic} version control, currently only supporting Git\footnote{\url{https://git-scm.com/}}, is enabled by linking to the Git folder in the application source code: 
+  
+  \begin{lstlisting}[style=custompython]
+  ....
+  dashboard.config.git = '<path>/<to>/.git'
+  ....
+  \end{lstlisting}  
+  
+  With this extra configuration, the \tool automatically detects the current version of the project by reading the hash code of the deployed version as soon as the application is deployed and started. Information about the version history of the application are also persisted in the tool database and are used during the collection of measurements for the application.
+  
+  \todo{Add here integration with Travis info as a prerequisite for discussion in Section~\ref{sec:testing}}
+ 
 
 \section{Performance Perspectives}
 \label{sec:views}
@@ -279,6 +313,8 @@ Figure \ref{fig:dp} shows the API not being used during the early morning hours,
 
   \niceseparator
 
+  \todo{rephrase the following, the discussion has been partially subsumed by Section~\ref{sec:tool}.}
+
   However, with the current configuration of the tool, it would be impossible for the maintainer to see the improvements resulting from the optimization. One way to do this is to add an extra line of configuration to allow \tool to find the git\footnote{\url{https://git-scm.com/}} folder of the deployed service: 
 
 %  \begin{lstlisting}[caption=Configuring the \tool with the path to the .git folder enables the generation of evolutionary performance graphs, style=custompython]
@@ -365,11 +401,13 @@ The limitation of the previous view is that it does not present the information 
 \end{figure}
 
 \section{Performance Prediction}
+\label{sec:testing}
 
-\todo{discuss here the integration with Travis and the idea of using unit testing as an early performance indicator for evolving services; add a side-by-side figure comparing unit testing vs live system performance per version, maybe calculate error in trend curves? find a better term than prediction for the section title (plus introduction)}
+\todo{discuss here idea of using unit testing as an early performance indicator for evolving services (`preemptive monitoring'?); add a side-by-side figure comparing unit testing vs live system performance per version, maybe calculate error in trend curves? find a better term than prediction for the section title (plus introduction)}
 
 
 \section{Evaluation}
+\label{sec:evaluation}
 
 \todo{evaluation of the \tool across the following dimensions: ease of use, effectiveness, overhead to the system; for the last part we need to do the overhead measurement experiment, for the other two we base it on the case study and bring over whatever is necessary from the discussion section}
 
@@ -427,23 +465,13 @@ From the perspective of service monitoring, our work falls within the server-sid
 
 
 \section{Conclusion and Future Work}
+\label{sec:conclusions}
 
 \todo{update as appropriate}
 
 In this paper we have shown that it is possible to create a monitoring solution which provides basic insight into web service utilization and performance  with very little effort from the developer. The user group that we are aiming for with this work is application developers using Flask and Python to build web applications with limited or no budget for implementing their own monitoring solutions. The emphasis is in allowing such users to gain insight into how the performance of the service evolves together with the application itself. We believe that the same architecture, and lessons can be applied to other frameworks and other languages.
 
 In the future, we plan to perform case studies with other sytstems, with the goal of discover other needs and to wean out the less useful visualizations in the \tool. We plan to also extend the tool towards supporting multiple deployments of the same applications across multiple nodes (e.g. for the situations where the application is deployed together with a load balancer). Finally, we plan to integrate \tool with unit testing as a complementary source of information about performance evolution.
-
-  \section{Tool and Source Code Availability}
-  \label{sec:install}
-  
-  \todo{remove this section; merge material with previous sections}
-
-    The images in this paper are screenshots of the interactive visualizations from the deployment of \tool in the context of the Zeeguu API. The deployment of the system can be consulted online by readers and reviewers of this paper\footnote{\url{https://zeeguu.unibe.ch/api/dashboard}; username: {\em guest}, password: {\em vissoft}}.
-
-    \tool is implemented for Python 3.6 and is available on the Python Package Index repository\footnote{\url{https://pypi.python.org/pypi/flask-monitoring-dashboard/1.8}} from where it can be installed on any system that has Python installed by running \install from the command line. 
-
-    The source code of the \tool is published under a permissive MIT license and is available on GitHub\footnote{\url{https://github.com/mircealungu/automatic-monitoring-dasboard}}.
 
 
 % references section
