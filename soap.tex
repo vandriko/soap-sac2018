@@ -440,7 +440,9 @@ The limitation of the previous view is that it does not present the information 
 \section{Preemptive Monitoring}
 \label{sec:testing}
 
-\todo{discuss here idea of using unit testing as an early performance indicator for evolving services (`preemptive monitoring'?); add a side-by-side figure comparing unit testing vs live system performance per version, maybe calculate error in trend curves? find a better term than prediction for the section title (plus introduction)}
+%\todo{discuss here idea of using unit testing as an early performance indicator for evolving services (`preemptive monitoring'?); add a side-by-side figure comparing unit testing vs live system performance per version, maybe calculate error in trend curves? find a better term than prediction for the section title (plus introduction)}
+
+\todo{Similar to the idea of augmenting service monitoring with online testing~\cite{metzger2010proactive}, i.e.~testing service-based applications by using dedicated test input in parallel to its normal use and operation. The difference is that we take advantage of the capability of Travis to create an emulated live environment for integration testing purposes, and use unit testing as the dedicated test input in order to measure performance. What we are going provide evidence for in the following is that we can indeed use this preemptive monitoring concept as an early performance indicator for evolving services.}
 
 The developer needs to define the unit test folder of the project, the URL that Travis should use for reporting its results, and the number of iterations for each unit test should be executed in order to generate 
 
@@ -516,7 +518,7 @@ Pearson correlation $r(3)=.93, p=.02$
 \section{Related Work}
 \label{sec:related}
 
-\todo{Update with Barbara's Monitoring paper }
+\todo{Refer the reader to~\cite{ghezzi2007run} and ~\cite{metzger2010analytical} for a more extensive discussion}
 
 There is a long tradition of using visualization for gaining insight into software performance. Tools like Jinsight \cite{Pauw02a} and Web Services Navigator \cite{Pauw05} pioneered such an approach for Java and for Web Services that communicate with SOAP messages. Both have an ``omniscient'' view of the services / objects and their interactions. As opposed to them, in our work we present an analytics platform which focuses on monitoring a single Python web service from its own point of view.
 
