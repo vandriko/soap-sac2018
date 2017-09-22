@@ -8,7 +8,8 @@
 \usepackage{xspace}
 \usepackage{listings}
 \usepackage[usenames, dvipsnames]{color}
-         
+
+\usepackage{booktabs}         
 
 \graphicspath{{./img/}}
 
@@ -84,6 +85,8 @@
 \section{Introduction}
 
 \todo{Intro to be rewritten; refer to VISSOFT paper as previous work, explain focus is on integration with version control/CI for evolution support, and use of unit tests as early performance indicator}
+
+\todo{motivate with: monitoring in a world which is becoming more and more service-oriented is essential because it allows to perform three main types of actions: system adaptations to provide the request service at the desired level of quality, enabling flexibility in dealing with changing requirements and modes of operation, and enabling operational awareness through dashboards organizing the collected data~\cite{pernici2016monitoring}. In this work we focus on the last part and we discuss how a minimal effort probe-based solution for a particular type of web services can be used to facilitate the other two types of actions by involving the developer.}
 
 \todo{explain: in~\cite{vogel2017low} we introduced the \tool an a high level with a focus on presenting its performance visualization aspects; in this work we only summarize these features by means of introducing some of the provided functionalities of the \tool. We focus on discussing how the tool is implemented and operating, provide a deeper look at its capabilities for integration with version control and continuous integration environments, introduce a mechanism for performance prediction, and provide an evaluation of the proposed approach based on a case study. }
 
@@ -173,10 +176,9 @@ As a case study, on which we will illustrate our solution, we are going to use a
 
   # flask_app is the Flask app object
   dashboard.bind(flask_app)
-  ...
   \end{lstlisting}
 
-  After (re)deployment of the application, the \tool becomes available at the \code{/dashboard} route of the Flask application. Further configuration is possible by adding additional statements before the binding definition, for example:
+  After (re)deployment of the application, the \tool becomes available at the \code{/dashboard} route of the Flask application. Further configuration is possible by adding additional statements before the binding definition, for example,
 
   \begin{lstlisting}[style=custompython]
   ...
@@ -184,7 +186,7 @@ As a case study, on which we will illustrate our solution, we are going to use a
   dashboard.bind(flask_app)
   \end{lstlisting}
   
-  allows for a custom route (\code{/mydashboard}) to the dashboard to be defined by the programmer. An external configuration file can be used instead or in addition to this:
+  allows for a custom route (\code{/mydashboard}) to the dashboard to be defined by the programmer. An external configuration file can be used instead, or in addition to this:
   
   \begin{lstlisting}[style=custompython]
   ...
@@ -206,11 +208,9 @@ As a case study, on which we will illustrate our solution, we are going to use a
   
   \paragraph{Outlier detection and monitoring}
   
-  \todo{rephrase the following and expand discussion if necessary}
+  Of particular interest to application developers are {\em outliers} to the expected performance. In the context of the RESTful services support by Flask, this means request serving times that deviate from the average to an unexpected degree. Identifying, collecting all appropriate data, and diagnosing the root causes of such outliers is especially critical in improving the quality of the application. 
   
-  The \tool collects {\bf extra information about such outliers}: Python stack trace, CPU load, request parameters, etc. in order to allow the maintainer to investigate the causes of these exceptionally slow response times. 
-  
-  In order to address this, but without degrading overall performance, the \tool tracks for every endpoint a running average value. When it detects that a given request is an outlier with respect to this past average running value, it triggers the {\em outlier data collection routine} which stores all the previously listed extra information about the current execution environment. 
+  For this purpose the \tool tracks for every monitored endpoint a {\em running average} response time value. When it detects that a given request is an outlier with respect to this past average running value, it triggers the {\em outlier data collection routine} which stores all the previously listed extra information about the current execution environment. A configurable threshold with a default value of $2.5$ times the running average response time is used for this purpose. For every detected outlier request, the \tool collects information about the current Python stack trace, CPU load, memory consumption, request parameters, etc. in order to allow the maintainer to investigate the causes of these exceptionally slow response times. In this way it is possible to get a useful insight into the operation of the application without unnecessarily burdening it with persistently monitoring information that is irrelevant to the application developer.
   
   \paragraph{User-level monitoring}
   
@@ -229,15 +229,15 @@ As a case study, on which we will illustrate our solution, we are going to use a
       get_user_id
   
   \end{lstlisting}
-  This feature, as discussed further in the following section, is important for the clustering of users depending on their application usage.
+  This feature, as discussed further in the following section, is important for the clustering of users depending on their application usage. It also provides a view on the distribution of the work load across the application endpoints on a per user basis that allows the identification of more or less popular endpoints for further performance improvements.
   
   \paragraph{Integration with Git and Travis}
   
-  Version control in the \tool is supported in two ways. \textit{Manual} version control requires the developer to tag each new version of the application with an appropriate version identifier~\cite{papazoglou2011managing} using the \code{APP\_VERSION} configuration parameter, for example by adding to the configuration file:
+  Version control in \tool is supported in two ways. \textit{Manual} version control requires the developer to tag each new version of the application with an appropriate version identifier~\cite{papazoglou2011managing} using the \code{APP\_VERSION} configuration parameter, for example by adding to the configuration file:
   
   \begin{lstlisting}[style=custompython]
   [dashboard]
-  APP_VERSION=2.1.13
+  APP_VERSION=<versionID>
   \end{lstlisting}
   
   \textit{Automatic} version control, aimed for use in conjunction with a version control system and currently only supporting Git\footnote{\url{https://git-scm.com/}}, is enabled by linking to the Git folder in the application source code: 
@@ -272,7 +272,7 @@ As a case study, on which we will illustrate our solution, we are going to use a
   %   \item A boxplot graph showing the average execution time for every monitored endpoint
   % \end{itemize}
 
-\todo{Summarize the subsections extensively; evaluate which figures to keep and ideally take new screenshots for the ones we keep}
+\todo{Summarize the subsections extensively; evaluate which figures to keep and ideally take new screenshots for the ones we keep; consider adding two more views (like Fig. 3.2 of Patrick's thesis)}
 
 \begin{figure*}[t]
 	\centering
@@ -288,7 +288,7 @@ As a case study, on which we will illustrate our solution, we are going to use a
 
 
 
-\subsection{Service Utilization}
+\paragraph{Service Utilization}
 \label{sec:util}
 
 The most fundamental insight that a service maintainer needs regards service utilization. %\vspace{0.5cm}
@@ -334,7 +334,7 @@ A second type of utilization question that the \tool can answer automatically re
 
 Figure \ref{fig:dp} shows the API not being used during the early morning hours, with most of the activity focused around working hours and some light activity during the evening. This is consistent with the fact that the current users are all in the central European timezone. Also, the figure shows that the spike in utilization that was visible also in the previous graph happended in on afternoon/evening.
 
-\subsection{Endpoint Performance}
+\paragraph{Endpoint Performance}
 \label{sec:perf}
 
   The \tool also collects information regarding endpoint performance. The view in \Fref{fig:ep} summarizes the response times for various endpoints by using a box-and-whiskers plot. 
@@ -354,7 +354,7 @@ Figure \ref{fig:dp} shows the API not being used during the early morning hours,
 
   \niceseparator
 
-  \todo{rephrase the following, the discussion has been partially subsumed by Section~\ref{sec:tool}.}
+  \todo{remove the part about how to configure git, the discussion has been subsumed by Section~\ref{sec:tool}.}
 
   However, with the current configuration of the tool, it would be impossible for the maintainer to see the improvements resulting from the optimization. One way to do this is to add an extra line of configuration to allow \tool to find the git\footnote{\url{https://git-scm.com/}} folder of the deployed service: 
 
@@ -384,12 +384,12 @@ Figure \ref{fig:dp} shows the API not being used during the early morning hours,
   This view confirms that the performance of the translation endpoint improved in the recent versions: the median of the last three versions is constantly moving towards the left, and progresses from 1.4 seconds (in the top-most box plot in \Fref{fig:tee}) to 0.8 in the latest version (bottom-most box plot).
   
 
-\subsection{User Experience}
+\paragraph{User Experience}
 \label{sec:user}
 
 For service endpoints which run computations in real time, the maintainer of a system might want to understand the endpoint performance on a per-user basis, especially for situations where the system response time is a function of some individual user load\footnote{E.g. in GMail some users have two emails while other have twenty thousand and this induces different response times for different users}.
 
-\todo{rephrase the following, the discussion has been partially subsumed by Section~\ref{sec:tool}.}
+\todo{remove the configuration part and rephrase the following, the discussion has been partially subsumed by Section~\ref{sec:tool}.}
 
 To enable this, the \tool must be configured to associate an API call with a given user. The simplest way is to take advantage of the architecture of Flask applications in which a global \code{flask.request} object can be used to retrieve the session which can in turn lead to user identification: 
 
@@ -408,6 +408,8 @@ dashboard.config.get_group_by = get_user_id
 \end{lstlisting}
 
 % \niceseparator
+
+\todo{consider losing one or both of the figures --- or at least updating them}
 
 In Zeeguu, \epFeedItems retrieves a list of recommended articles for a given user. Cf. \Fref{fig:ep} it is the endpoint with the slowest response time and highest variability. The reason for this is that a user can be subscribed to anything from one to three dozen article sources and for each of the sources the system must compute the personalized difficulty of each article at every request. 
 
@@ -435,13 +437,38 @@ The limitation of the previous view is that it does not present the information 
 	\label{fig:tuv}
 \end{figure}
 
-\section{Performance Prediction}
+\section{Preemptive Monitoring}
 \label{sec:testing}
 
 \todo{discuss here idea of using unit testing as an early performance indicator for evolving services (`preemptive monitoring'?); add a side-by-side figure comparing unit testing vs live system performance per version, maybe calculate error in trend curves? find a better term than prediction for the section title (plus introduction)}
 
 The developer needs to define the unit test folder of the project, the URL that Travis should use for reporting its results, and the number of iterations for each unit test should be executed in order to generate 
 
+\begin{figure}
+	\centering
+	\subfloat[The reported response time (in ms) per deployed version in the observation period]{\includegraphics[width=.5\columnwidth]{response_per_version_trunced_trend}}
+	\quad
+	\subfloat[The measured response time (in ms) using integration with Travis]{\includegraphics[width=.46\columnwidth]{travis_builds_no_outliers_trend}}
+	\caption{Comparison of the response times per endpoint: actual production system versus preemptive monitoring data}
+	\label{fig:preemptive}
+\end{figure}
+
+
+\begin{table}[h]
+	\begin{tabular}{lll}
+		\toprule
+		Iteration & \bfseries Live (median) & \bfseries Travis (median)\\
+		\midrule
+		1 & 1349.41 & 764.87\\ 
+		2 & 1466.13 & 992.87\\
+		3 & 1256.65 & 760.87\\
+		4 & 1266.42 & 813.89\\
+		5 & 1080.68 & 303.4\\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+Pearson correlation $r(3)=.93, p=.02$
 
 \section{Evaluation}
 \label{sec:evaluation}
