@@ -121,7 +121,7 @@ For projects on a budget (e.g. research, startups) the first and the second opti
 
 To avoid projects ending up in the third situation, that of living without analytics, in this paper we present \tool~ --- a low-effort service monitoring library for Flask-based Python web services that is easy to integrate and enables the {\em agile assessment} of service evolution. \cite{Nier12b}
 
-As a case study, on which we will illustrate our solution, we are going to use an open source API which was in the third situation presented above for more than one year.
+As a case study, on which we will illustrate our solution, we are going to use an open source API which, for several years, was in the third of the above-presented situations.
 
 % In the next section, we will present a case study of an open source research API which was for a long time in the third situation presented above -- deployed without analytics insight.
 
@@ -132,9 +132,9 @@ As a case study, on which we will illustrate our solution, we are going to use a
 
 %\todo{Either leave as is or add more info on usage by college if possible}
 
-  \zee\footnote{\url{https://www.zeeguu.unibe.ch/}} is a platform and an ecosystem of applications for accelerating vocabulary acquisition in a foreign language \cite{Lungu16}. 
+  \zee\footnote{\url{https://github.com/zeeguu-ecosystem/}} is a platform and an ecosystem of applications for accelerating vocabulary acquisition in a foreign language \cite{Lungu16}. 
 %
-  The architecture of the ecosystem has at its core an API and a series of satellite applications that together offer three main intertwined features for the learner:
+  The architecture of the ecosystem has at its core an API and a series of satellite applications that together offer to a learner three main inter-dependent features:
 
   \begin{enumerate}
 
@@ -207,7 +207,7 @@ As a case study, on which we will illustrate our solution, we are going to use a
     \begin{figure}
       \centering
       \includegraphics[width=\linewidth]{selecting_endpoints.png}
-      \caption{Available endpoints for monitoring in the \zee application}
+      \caption{Endpoints that are available for monitoring in the \zee API}
       \label{fig:sep}
     \end{figure}
 
@@ -215,13 +215,21 @@ As a case study, on which we will illustrate our solution, we are going to use a
   
   \paragraph{Outlier detection and monitoring}
   
-  Of particular interest to application developers are {\em outliers} to the expected performance. In the context of the RESTful services support by Flask, this means request serving times that deviate from the average to an unexpected degree. Identifying, collecting all appropriate data, and diagnosing the root causes of such outliers is especially critical in improving the quality of the application. 
+  \ins{When an API is called from within a highly interactive application (as it is the case with the Zeeguu ecosystem) 
+  of particular interest to the API developers are performance {\em outliers}. Indeed, a translation request that takes three times more than expected can seriously decrease the perceived quality of the application. Thus,} identifying, collecting all appropriate data, and diagnosing the root causes of such outliers is especially critical in improving the quality of an application. 
   
-  For this purpose the \tool tracks for every monitored endpoint a {\em running average} response time value. When it detects that a given request is an outlier with respect to this past average running value, it triggers the {\em outlier data collection routine} which stores all the previously listed extra information about the current execution environment. A configurable threshold with a default value of $2.5$ times the running average response time is used for this purpose. For every detected outlier request, the \tool collects information about the current Python stack trace, CPU load, memory consumption, request parameters, etc. in order to allow the maintainer to investigate the causes of these exceptionally slow response times. In this way it is possible to get a useful insight into the operation of the application without unnecessarily burdening it with persistently monitoring information that is irrelevant to the application developer.
+  % In the context of the RESTful services support by Flask, this means request serving times that deviate from the average to an unexpected degree. 
+  
+  For this purpose the \tool tracks for every monitored endpoint a {\em running average} response time value\footnote{\ins{For performance reasons, we assume that the response times for the endpoints are normally distributed. Otherwise, more general density distribution information must be collected in real time.}}. When it detects that a given request is an outlier with respect to this past average running value, it triggers the {\em outlier data collection routine} which stores \ins{extra information} about the current execution environment. A configurable threshold with a default value of $2.5$ times the running average response time is used for this purpose. 
+
+  For every detected outlier request, the \tool collects information about the current Python stack trace, CPU load, memory consumption, request parameters, etc. in order to allow the maintainer to investigate the causes of these exceptionally slow response times. In this way it is possible to get \ins{detailed insight into the operation of the application in the extreme cases without unnecessarily burdening it with logging this information for every request}.
   
   \paragraph{User-level monitoring}
   
-  Flask applications come with a global \code{flask.request} object which can be used to retrieve session information for API calls. This ability can be used in order to allow, for example, the identification of application users from the \tool, and the consequent aggregation of monitoring information on a per user basis as follows: 
+  \ins{Sometimes, the same service endpoint will have different execution times for different users, based on the amount of data that a user has in their account. Gmail engineers admitted in 2010 that the performance of their service was dependent on the amount of emails a user would have in their Inbox \footnote{https://techcrunch.com/2010/03/14/gmail-slow/, visited September 23 2017}. }
+
+  \ins{If the API provider needs to understand the performance of their service for individual users, or for different user groups, the dashboard should have a way of distilling a user or a user group from the API request. For a large number of Flask applications that use the global \code{flask.request} object, the object} can be used to retrieve session information, \ins{as in the following snippet}: 
+  % . This ability can be used in order to allow, for example, the identification of application users from the \tool, and the consequent aggregation of monitoring information on a per user basis as follows: 
   
   \begin{lstlisting}[style=custompython]  
   # app specific way of extracting the user
@@ -236,7 +244,7 @@ As a case study, on which we will illustrate our solution, we are going to use a
       get_user_id
   
   \end{lstlisting}
-  This feature, as discussed further in the following section, is important for the clustering of users depending on their application usage. It also provides a view on the distribution of the work load across the application endpoints on a per user basis that allows the identification of more or less popular endpoints for further performance improvements.
+  This feature, as discussed further in the following section, is important for the clustering of users depending on their application usage. It also provides a view on the distribution of the work load across the application endpoints on a per user basis that allows the identification of more or less popular endpoints for further performance improvements. \ml{this previous paragraph seems a bit reduntant. must revisit}
   
   \paragraph{Integration with Git and Travis}
   
