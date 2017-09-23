@@ -173,9 +173,10 @@ As a case study, on which we will illustrate our solution, we are going to use a
   
   \paragraph{Usage \& Configuration}
   
-  The fact that the \tool itself is being developed in Python using Flask makes binding to the services of a to-be monitored application developed with the same technologies easy and intuitive. 
-  %In addition, it comes with the ability of adding additional routes to the services for interacting with the \tool.
-  To start using the \tool, one simply needs to add two lines of code to their Flask web service:
+  The fact that the \tool itself is being developed in Python using Flask makes binding to the services of a to-be monitored application developed with the same technologies easy and intuitive. \ml{this is not what matters... rather, what matters is that with the right backend, we can do this minimal configuration for any technology... do you see what i mean? let me see if i can put it in words...}
+
+  Our main goal with the \tool was to allow the integration of the dashboard with an API with minimal effort.
+  To start using the \tool, one simply needs to add two lines of code to their Flask web service\footnote{\ins{ In this paper we present the integration with APIs written in Python and Flask hoping that this will not prevent the reader from seeing the more general idea; all the tools we show here for Flask can be applied to other API technologies (e.g. Django) by simply providing a few back-end adapters in the right places. }}:
 
   % caption=Configuring the \tool is straightforward,
   \begin{lstlisting}[style=custompython]
@@ -212,6 +213,8 @@ As a case study, on which we will illustrate our solution, we are going to use a
     \end{figure}
 
   In order to monitor an endpoint, the \tool creates a function wrapper for the API function that corresponds to the endpoint. This way, the wrapper will be executed whenever that API call is made. The wrapper contains the code that takes care of monitoring an endpoint. Data collected by the wrappers are persisted in a local database. The SQLAlchemy Object Relational Mapper\footnote{\url{https://www.sqlalchemy.org/}} on top of SQLite\footnote{\url{https://www.sqlite.org/}} is used for this purpose.
+
+  \ml{we must insert at least one dashboard view here... otherwise people will lose their patience... also it will help with explaining the outliers... also, one should see that a large variety of views are already available at this point... I know this risks being  }
   
   \paragraph{Automated outlier detection and monitoring}
   
