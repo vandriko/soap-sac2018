@@ -171,6 +171,8 @@ As a case study, on which we will illustrate our solution, we are going to use a
 %  
   The source code of the \tool is published under a permissive MIT license and is available on GitHub\footnote{\url{https://github.com/flask-dashboard}}.
   
+  \paragraph{Usage \& Configuration}
+  
   The fact that the \tool itself is being developed in Python using Flask makes binding to the services of a to-be monitored application developed with the same technologies easy and intuitive. 
   %In addition, it comes with the ability of adding additional routes to the services for interacting with the \tool.
   To start using the \tool, one simply needs to add two lines of code to their Flask web service:
@@ -255,7 +257,31 @@ As a case study, on which we will illustrate our solution, we are going to use a
   
   With this extra configuration parameter, the \tool automatically detects the current version of the project by reading the hash code of the deployed version as soon as the application is deployed and started. Information about the version history of the application is also persisted in the tool database and is used during the collection of measurements for the application.
   
-  Furthermore, the \tool can be configured to work together with Continuous Integration (CI) frameworks like Travis\footnote{\url{https://travis-ci.org/}} that deal with automated integration testing. By these means, an application developer can use unit tests as synthetic loads for driving the performance monitoring of the application before it reaches the production phase.  As we will discuss further in Section~\ref{sec:testing}, this feature is integral in enabling preemptive performance monitoring of the application.  
+  Furthermore, the \tool can be configured to work together with Continuous Integration (CI) frameworks like Travis\footnote{\url{https://travis-ci.org/}} that deal with automated integration testing.
+  The developer needs to define the unit test folder of the project, the URL that Travis should use for reporting its results, and the number of iterations for each unit test should be executed in order to generate a load for the application. 
+  
+  Each time a new build is created through Travis, the \tool automatically detects all available unit tests defined by the application developer and iterates through each one of them the number of times predefined by the developer while monitoring the response times for each request. The resulting measurements are persisted in a separate part of the tool database so as not to contaminate the ``live'' monitoring data. Beyond seeing the results of each Travis build in the \tool, this feature also allows for preemptive monitoring of the application, as we discuss in the following.      
+  
+  %By these means, an application developer can use unit tests as synthetic loads for driving the performance monitoring of the application before it reaches the production phase.  As we will discuss further in Section~\ref{sec:testing}, this feature is integral in enabling preemptive performance monitoring of the application.  
+  
+  \paragraph{Preemptive monitoring}
+  
+  \todo{the following might need a bit of rewrite}
+  
+  The concept of {\em preemptive monitoring} of the application performance by means of instrumenting integration unit testing as the synthetic load is similar to the idea of augmenting service monitoring with online testing~\cite{metzger2010proactive}, i.e.~testing service-based applications by using dedicated test input in parallel to its normal use and operation. The difference is that we take advantage of the capability of the CI framework (i.e. Travis in this case) to create an emulated ``live'' environment for integration testing purposes, and use unit testing as the dedicated test input in order to measure performance. 
+  
+  \begin{figure}
+  	\centering
+  	\includegraphics[width=.9\columnwidth]{travis_builds}
+  	\caption{Response times in 5 consequent Travis builds in the \zee case study}
+  	\label{fig:builds}
+  \end{figure}
+  
+  
+  For example, \Fref{fig:builds} is a screenshot from the dashboard showing the measured response times for 5 consequent builds, with 180 iterations of the unit tests executed in total across all endpoints. The outliers on the right of the figure are due to initial requests to external endpoints that are consequently cached.  
+  
+  While this integration testing environment is different from the actual production deployment one, and the load used is purely synthetic, as will show in Section~\ref{sec:evaluation}, it can actually be used successfully as an early performance indicator for the application developer. This is still far from actually predicting the performance of the application, but it can both be used for informing developers about the overall performance trend, and act as advanced warning for under-performing endpoints.  
+  
 
 \section{Performance Perspectives}
 \label{sec:views}
@@ -442,14 +468,28 @@ The limitation of the previous view is that it does not present the information 
 	\label{fig:tuv}
 \end{figure}
 
-\section{Preemptive Monitoring}
-\label{sec:testing}
+%\section{Preemptive Monitoring}
+%\label{sec:testing}
+%
+%%\todo{discuss here idea of using unit testing as an early performance indicator for evolving services (`preemptive monitoring'?); add a side-by-side figure comparing unit testing vs live system performance per version, maybe calculate error in trend curves? find a better term than prediction for the section title (plus introduction)}
+%
+%\todo{Similar to the idea of augmenting service monitoring with online testing~\cite{metzger2010proactive}, i.e.~testing service-based applications by using dedicated test input in parallel to its normal use and operation. The difference is that we take advantage of the capability of Travis to create an emulated live environment for integration testing purposes, and use unit testing as the dedicated test input in order to measure performance. What we are going provide evidence for in the following is that we can indeed use this preemptive monitoring concept as an early performance indicator for evolving services.}
+%
+%The developer needs to define the unit test folder of the project, the URL that Travis should use for reporting its results, and the number of iterations for each unit test should be executed in order to generate 
 
-%\todo{discuss here idea of using unit testing as an early performance indicator for evolving services (`preemptive monitoring'?); add a side-by-side figure comparing unit testing vs live system performance per version, maybe calculate error in trend curves? find a better term than prediction for the section title (plus introduction)}
 
-\todo{Similar to the idea of augmenting service monitoring with online testing~\cite{metzger2010proactive}, i.e.~testing service-based applications by using dedicated test input in parallel to its normal use and operation. The difference is that we take advantage of the capability of Travis to create an emulated live environment for integration testing purposes, and use unit testing as the dedicated test input in order to measure performance. What we are going provide evidence for in the following is that we can indeed use this preemptive monitoring concept as an early performance indicator for evolving services.}
+\section{Evaluation}
+\label{sec:evaluation}
 
-The developer needs to define the unit test folder of the project, the URL that Travis should use for reporting its results, and the number of iterations for each unit test should be executed in order to generate 
+%\todo{evaluation of the \tool across the following dimensions: ease of use, effectiveness, overhead to the system; for the last part we need to do the overhead measurement experiment, for the other two we base it on the case study and bring over whatever is necessary from the discussion section}
+
+\subsection{Effectiveness \& Ease of Use}
+
+\todo{@M: move here the war stories, and discuss how useful the whole thing was to the application maintainer}
+
+\subsection{Efficiency of Preemptive Monitoring}
+
+\todo{here goes the discussion about our forecasting capabilities}
 
 \begin{figure}
 	\centering
@@ -476,11 +516,6 @@ The developer needs to define the unit test folder of the project, the URL that 
 \end{table}
 
 Pearson correlation $r(3)=.93, p=.02$
-
-\section{Evaluation}
-\label{sec:evaluation}
-
-\todo{evaluation of the \tool across the following dimensions: ease of use, effectiveness, overhead to the system; for the last part we need to do the overhead measurement experiment, for the other two we base it on the case study and bring over whatever is necessary from the discussion section}
 
 \subsection{Discussion}
 
